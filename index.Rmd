@@ -119,18 +119,25 @@ ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept
 
 ```{r,fig.height=4,fig.width=10,echo=FALSE}
 for(i in 1:10){
-    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/59x33/',p1_data$name[i],'_sb.png')),x=i/12,height=.1)
+    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')),x=i/12,height=.1)
 }
 ```
 
 ```{r,fig.height=4,fig.width=10,echo=FALSE}
 for(i in 20:11){
-    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/59x33/',p1_data$name[i],'_sb.png')),x=(21-i)/12,height=.1)
+    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')),x=(21-i)/12,height=.1)
 }
 ```
 
 
 ###
+
+```{r,fig.height=4,fig.width=10,echo=FALSE}
+for(i in 20:11){
+    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')),x=(21-i)/12,height=.1)
+}
+```
+
 
 ```{r,cache=TRUE}
 inv_slot = inv_player %>% filter(hero_id==inv_id) %>% select(match_id,player_slot)

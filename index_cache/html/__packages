@@ -1,0 +1,10 @@
+base
+dplyr
+tidyr
+bitops
+RCurl
+jsonlite
+DBI
+RSQLite
+ggplot2
+png
