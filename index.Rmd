@@ -4,7 +4,7 @@ output: html_document
 date: July 18, 2016
 ---
 
-Dota 2 is a multiplayer online battle arena (MOBA) video game developed by Valve Corporation, and is one of the most actively played games on Steam. Dota 2 is played in matches between two five-player teams, each of which occupies a base in a corner of the playing field. Each player controls one of 111 playable characters, called "heroes¡±, which feature unique abilities. During a match, the player collects gold and experience points for their hero, while fighting heroes of the opposite team. The gold can be used to purchase items from stores. A team wins by destroying the other side's "Ancient" building, located within the opposing base.
+Dota 2 is a multiplayer online battle arena (MOBA) video game developed by Valve Corporation, and is one of the most actively played games on Steam. Dota 2 is played in matches between two five-player teams, each of which occupies a base in a corner of the playing field. Each player controls one of 111 playable characters, called "heroes", which feature unique abilities. During a match, the player collects gold and experience points for their hero, while fighting heroes of the opposite team. The gold can be used to purchase items from stores. A team wins by destroying the other side's "Ancient" building, located within the opposing base.
 
 <img src="figure/dota_2_logo.png" width="200px"/>
 
@@ -23,9 +23,9 @@ He can use these abilities to invoke the 10 combat abilities. Invoker can have a
 
 The goal of this project is to explore factors that are associated with the winning rate in games that have Invoker, and ultimately to build a model that can be used to predict if a game was won according to these factors.
 
-Data were collected using the official API between March 1st and April 4th, 2016. Inclusion criteria are: (1) ¡°Very High¡± skill bracket; (2) no leavers; (3) game length greater than 10 min; (4) game mode in (¡®All pick¡¯, ¡¯Captain mode¡¯, ¡®Ranked all pick¡¯). 
+Data were collected using the official API between March 1st and April 4th, 2016. Inclusion criteria are: (1) "Very High" skill bracket; (2) no leavers; (3) game length greater than 10 min; (4) game mode in ("All pick", "Captain mode", "Ranked all pick"). 
 
-I¡¯ve examined two questions so far: 
+I've examined two questions so far: 
 
 ##### 1. Which heroes as teammates led to highest winning rate? 
 Which heroes as opponents led to lowest winning rate?
@@ -34,9 +34,9 @@ I calculated the numbers of games that each hero was played with Invoker as a te
 
 ##### 2. Which build led to higher winning rate for invoker?
 
-Since Invoker can keep only two combat abilities simultaneously and it takes more time to invoke other abilities at early game, it is wiser to focus on two basic skills out of the three (Quas, Wex, Exort) to upgrade. Therefore we have different ¡®builds¡¯ for an Invoker player: ¡®Quas-Exort¡¯, ¡®Quas- Wex¡¯ or ¡®Wex-Exort¡¯. More specifically, current Invoker players usually only use the first two builds. I compared the winning rate across different builds in this analysis.
+Since Invoker can keep only two combat abilities simultaneously and it takes more time to invoke other abilities at early game, it is wiser to focus on two basic skills out of the three (Quas, Wex, Exort) to upgrade. Therefore we have different "builds" for an Invoker player: "Quas-Exort", "Quas-Wex" or "Wex-Exort". More specifically, current Invoker players usually only use the first two builds. I compared the winning rate across different builds in this analysis.
 
-My ultimate goal is to build a prediction model that harnesses information like those explored so far. I am thinking of using logistic regression and gradient boosted trees (as implemented in the ¡®xgboost¡¯ package) to do this. The targeted metric is accuracy, given that the data is quite balanced (winning rate ~ 50%). I am going to divide the data into 10 cross-validation folds, and select my final model based on the CV error.
+My ultimate goal is to build a prediction model that harnesses information like those explored so far. I am thinking of using logistic regression and gradient boosted trees (as implemented in the "xgboost" package) to do this. The targeted metric is accuracy, given that the data is quite balanced (winning rate ~ 50%). I am going to divide the data into 10 cross-validation folds, and select my final model based on the CV error.
 
 
 ####Load packages.
