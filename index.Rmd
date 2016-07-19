@@ -49,6 +49,7 @@ suppressWarnings(library(RSQLite))
 suppressWarnings(library(ggplot2))
 suppressWarnings(library(png))
 suppressWarnings(library(grid))
+suppressWarnings(library(gridExtra))
 ```
 
   
@@ -61,7 +62,7 @@ steam_key=readRDS(file="E:/dota_data/steam_key.rds")
 
 
 ####Load data from SQLite database.
-```{r sql}
+```{r sql,cache=TRUE}
 db = dbConnect(SQLite(), "D:/DataSci_tools/Git_Repo/bak/dota_6.86f.sqlite3")
 
 match = dbReadTable(db,'match')    #match info
@@ -105,7 +106,7 @@ dim(inv_match)
 
 ### Q1. Which heroes as teammates led to highest winning rate? 
 
-```{r}
+```{r,cache=TRUE}
 #summarize heros info for each game, spread rows to columns
 game_info = inv_player %>% select(match_id,player_slot,hero_id) %>% mutate(team = ifelse(player_slot<5,'radiant','dire')) %>%
     group_by(match_id,team) %>%
@@ -162,24 +163,28 @@ ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept
 
 Invoker had the highest winning rate with these ally heroes (high to low)
 
-```{r,fig.height=4,fig.width=10,echo=FALSE}
+```{r,fig.height=0.8,fig.width=10,echo=FALSE}
+imgs = list()
 for(i in 1:10){
-    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')),x=i/12,height=.1)
+    imgs[[i]] = rasterGrob(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')), interpolate=TRUE, width = unit(0.95,"in"),height=unit(0.6,"in"))
 }
+grid.arrange(grobs=imgs,nrow=1)
 ```
 
 Invoker had the lowest winning rate with these enemy heroes (low to high)
 
-```{r,fig.height=4,fig.width=10,echo=FALSE}
-for(i in 20:11){
-    grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')),x=(21-i)/12,height=.1)
+```{r,fig.height=0.8,fig.width=10,echo=FALSE}
+imgs = list()
+for(i in 1:10){
+    imgs[[i]] = rasterGrob(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[21-i],'_lg.png')), interpolate=TRUE, width = unit(0.95,"in"),height=unit(0.6,"in"))
 }
+grid.arrange(grobs=imgs,nrow=1)
 ```
 
 
 ### Q2. Which build led to higher winning rate for invoker?
 
-```{r}
+```{r,cache=TRUE}
 inv_slot = inv_player %>% filter(hero_id==inv_id) %>% select(match_id,player_slot)
 inv_ability_only = inner_join(inv_ability,inv_slot,by=names(inv_slot))
 
