@@ -61,8 +61,8 @@ steam_key=readRDS(file="E:/dota_data/steam_key.rds")
 
 
 ####Load data from SQLite database.
-```{r sql, cache=T}
-db = dbConnect(SQLite(), "D:/DataSci_tools/Git_Repo/dota2/dota_6.86f.sqlite3")
+```{r sql,cache=TRUE}
+db = dbConnect(SQLite(), "D:/DataSci_tools/Git_Repo/bak/dota_6.86f.sqlite3")
 
 match = dbReadTable(db,'match')    #match info
 player = dbReadTable(db,'player')    #player info for each match
@@ -92,7 +92,7 @@ head(hero_names)
 
 Subset the dataset for those that had Invoker.
 
-```{r subset,cache=TRUE}
+```{r subset}
 inv_matchid = filter(player,hero_id==inv_id) %>% select(match_id) %>% unlist
 
 inv_match = filter(match,match_id%in%inv_matchid)
@@ -151,7 +151,7 @@ inv_enemy_win = inv_enemy_win[order(inv_enemy_win$win_freq),]
 
 
 
-```{r}
+```{r,fig.height=6,fig.width=6}
 p1_data = rbind(inv_ally_win[1:10,],inv_enemy_win[10:1,]) %>% mutate(id = as.integer(gsub('.*_','',number))) %>% inner_join(hero_names,by='id')
 p1_data = p1_data %>% mutate(name_f = ifelse(group=='ally',paste0(name,'_a'),paste0(name,'_e')))    #add suffix
 p1_data$name_f <- factor(p1_data$name_f, levels = p1_data$name_f[order(p1_data$win_freq,decreasing = T)])
@@ -204,7 +204,7 @@ inv_win_class = match_info_comb %>% select(match_id,radiant_win,team,inv_class) 
 ```
 
 
-```{r}
+```{r,fig.height=6,fig.width=6}
 inv_win_class
 ggplot(aes(x=inv_class,y=freq),data=inv_win_class) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') + 
     geom_bar(stat = "identity") +
