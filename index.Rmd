@@ -158,7 +158,8 @@ p1_data = p1_data %>% mutate(name_f = ifelse(group=='ally',paste0(name,'_a'),pas
 p1_data$name_f <- factor(p1_data$name_f, levels = p1_data$name_f[order(p1_data$win_freq,decreasing = T)])
 ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') +
     geom_bar(stat = "identity") +
-    labs(title = "Plot 1. Max/min winning rate with allies/enemies") + xlab("Heros") + ylab("Winning rate")
+    labs(title = "Plot 1. Max/min winning rate with allies/enemies") + xlab("Heros") + ylab("Winning rate") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
 ```
 
 Invoker had the highest winning rate with these ally heroes (high to low)
