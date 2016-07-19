@@ -26,12 +26,14 @@ The goal of this project is to explore factors that are associated with the winn
 Data were collected using the official API between March 1st and April 4th, 2016. Inclusion criteria are: (1) ¡°Very High¡± skill bracket; (2) no leavers; (3) game length greater than 10 min; (4) game mode in (¡®All pick¡¯, ¡¯Captain mode¡¯, ¡®Ranked all pick¡¯). 
 
 I¡¯ve examined two questions so far: 
-(1) Which heroes as teammates led to highest winning rate? 
+
+##### 1. Which heroes as teammates led to highest winning rate? 
 Which heroes as opponents led to lowest winning rate?
 
 I calculated the numbers of games that each hero was played with Invoker as a teammate or an opponent, and calculated the winning rate for each of the heroes.
 
-(2) Which build led to higher winning rate for invoker?
+##### 2. Which build led to higher winning rate for invoker?
+
 Since Invoker can keep only two combat abilities simultaneously and it takes more time to invoke other abilities at early game, it is wiser to focus on two basic skills out of the three (Quas, Wex, Exort) to upgrade. Therefore we have different ¡®builds¡¯ for an Invoker player: ¡®Quas-Exort¡¯, ¡®Quas- Wex¡¯ or ¡®Wex-Exort¡¯. More specifically, current Invoker players usually only use the first two builds. I compared the winning rate across different builds in this analysis.
 
 My ultimate goal is to build a prediction model that harnesses information like those explored so far. I am thinking of using logistic regression and gradient boosted trees (as implemented in the ¡®xgboost¡¯ package) to do this. The targeted metric is accuracy, given that the data is quite balanced (winning rate ~ 50%). I am going to divide the data into 10 cross-validation folds, and select my final model based on the CV error.
@@ -88,13 +90,20 @@ hero_names = data.frame(id = hero_json$result$heroes$id,name = hero_names,string
 head(hero_names)
 ```
 
+Subset the dataset for those that had Invoker.
+
 ```{r subset,cache=TRUE}
 inv_matchid = filter(player,hero_id==inv_id) %>% select(match_id) %>% unlist
 
 inv_match = filter(match,match_id%in%inv_matchid)
 inv_player = filter(player,match_id%in%inv_matchid)
 inv_ability = filter(ability_up,match_id%in%inv_matchid)
+
+dim(inv_match)
 ```
+
+
+### Q1. Which heroes as teammates led to highest winning rate? 
 
 ```{r,cache=TRUE}
 #summarize heros info for each game, spread rows to columns
@@ -102,11 +111,11 @@ game_info = inv_player %>% select(match_id,player_slot,hero_id) %>% mutate(team 
     group_by(match_id,team) %>%
     mutate(has_invoker= any(hero_id==inv_id),count=1)
 
-inv_friend = game_info %>% filter(has_invoker) %>% select(-player_slot) %>%
+inv_ally = game_info %>% filter(has_invoker) %>% select(-player_slot) %>%
     spread(key = hero_id,value = count,fill = 0)
-names(inv_friend)[-(1:3)] = paste0('friend_',names(inv_friend)[-(1:3)])
+names(inv_ally)[-(1:3)] = paste0('ally_',names(inv_ally)[-(1:3)])
 
-inv_friend = inv_friend %>% group_by(match_id,team) %>% summarise_each_(funs(mean(.,na.rm=T)),names(inv_friend)[-(1:3)]) %>% select(-friend_74)  #remove invoker from the friend list
+inv_ally = inv_ally %>% group_by(match_id,team) %>% summarise_each_(funs(mean(.,na.rm=T)),names(inv_ally)[-(1:3)]) %>% select(-ally_74)  #remove invoker from the ally list
 
 
 inv_enemy = game_info %>% filter(!has_invoker) %>% select(-player_slot) %>%
@@ -115,24 +124,24 @@ names(inv_enemy)[-(1:3)] = paste0('enemy_',names(inv_enemy)[-(1:3)])
 
 inv_enemy = inv_enemy %>% group_by(match_id,team) %>% summarise_each_(funs(mean(.,na.rm=T)),names(inv_enemy)[-(1:3)]) %>% select(-team)
 
-game_info_sum = inner_join(inv_friend,inv_enemy,by='match_id')
+game_info_sum = inner_join(inv_ally,inv_enemy,by='match_id')
 
 
 #combine
 match_info_comb = inner_join(match,game_info_sum,by='match_id')
 
-inv_win = match_info_comb %>% select(match_id,radiant_win,team,friend_1:enemy_113) %>% 
+inv_win = match_info_comb %>% select(match_id,radiant_win,team,ally_1:enemy_113) %>% 
     filter((radiant_win&team=='radiant') | (!radiant_win&team!='radiant')) %>%
-    summarise_each_(funs(sum),vars=c(names(inv_friend)[-(1:3)],names(inv_enemy)[-(1:3)]))
+    summarise_each_(funs(sum),vars=c(names(inv_ally)[-(1:3)],names(inv_enemy)[-(1:3)]))
 
 
 #total number of games for each hero
-game_totalN = match_info_comb %>% summarise_each_(funs(sum),vars=c(names(inv_friend)[-(1:3)],names(inv_enemy)[-(1:3)]))
+game_totalN = match_info_comb %>% summarise_each_(funs(sum),vars=c(names(inv_ally)[-(1:3)],names(inv_enemy)[-(1:3)]))
 
 
-inv_friend_win = t(select(inv_win,starts_with('friend'))/select(game_totalN,starts_with('friend')))
-inv_friend_win = data.frame(number = row.names(inv_friend_win),win_freq = inv_friend_win,totalN = unlist(select(game_totalN,starts_with('friend'))),group='friend')
-inv_friend_win = inv_friend_win[order(inv_friend_win$win_freq,decreasing = T),]
+inv_ally_win = t(select(inv_win,starts_with('ally'))/select(game_totalN,starts_with('ally')))
+inv_ally_win = data.frame(number = row.names(inv_ally_win),win_freq = inv_ally_win,totalN = unlist(select(game_totalN,starts_with('ally'))),group='ally')
+inv_ally_win = inv_ally_win[order(inv_ally_win$win_freq,decreasing = T),]
 
 
 inv_enemy_win = t(select(inv_win,starts_with('enemy'))/select(game_totalN,starts_with('enemy')))
@@ -143,18 +152,23 @@ inv_enemy_win = inv_enemy_win[order(inv_enemy_win$win_freq),]
 
 
 ```{r}
-p1_data = rbind(inv_friend_win[1:10,],inv_enemy_win[10:1,]) %>% mutate(id = as.integer(gsub('.*_','',number))) %>% inner_join(hero_names,by='id')
-p1_data = p1_data %>% mutate(name_f = ifelse(group=='friend',paste0(name,'_f'),paste0(name,'_e')))    #add suffix
+p1_data = rbind(inv_ally_win[1:10,],inv_enemy_win[10:1,]) %>% mutate(id = as.integer(gsub('.*_','',number))) %>% inner_join(hero_names,by='id')
+p1_data = p1_data %>% mutate(name_f = ifelse(group=='ally',paste0(name,'_a'),paste0(name,'_e')))    #add suffix
 p1_data$name_f <- factor(p1_data$name_f, levels = p1_data$name_f[order(p1_data$win_freq,decreasing = T)])
-ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') + geom_bar(stat = "identity") 
+ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') +
+    geom_bar(stat = "identity") +
+    labs(title = "Plot 1. Max/min winning rate with allies/enemies") + xlab("Heros") + ylab("Winning rate")
 ```
 
+Invoker had the highest winning rate with these ally heroes (high to low)
 
 ```{r,fig.height=4,fig.width=10,echo=FALSE}
 for(i in 1:10){
     grid.raster(readPNG(paste0('D:/DataSci_tools/Git_Repo/dota2/205x115/',p1_data$name[i],'_lg.png')),x=i/12,height=.1)
 }
 ```
+
+Invoker had the lowest winning rate with these enemy heroes (low to high)
 
 ```{r,fig.height=4,fig.width=10,echo=FALSE}
 for(i in 20:11){
@@ -163,8 +177,7 @@ for(i in 20:11){
 ```
 
 
-###
-
+### Q2. Which build led to higher winning rate for invoker?
 
 ```{r,cache=TRUE}
 inv_slot = inv_player %>% filter(hero_id==inv_id) %>% select(match_id,player_slot)
@@ -177,7 +190,7 @@ inv_ab_lvl9  = inv_ability_only %>% group_by(match_id) %>%
 names(inv_ab_lvl9) = c('match_id','quas','wex','exort','invoke')
 head(inv_ab_lvl9)
 
-inv_ab_lvl9 = inv_ab_lvl9 %>% mutate(inv_class=ifelse(wex<=1,'ice_fire',ifelse(exort<=1,'ice_thunder',ifelse(quas<=1,'fire_thunder','other'))))
+inv_ab_lvl9 = inv_ab_lvl9 %>% mutate(inv_class=ifelse(wex<=1,'Quas_Exort',ifelse(exort<=1,'Quas_Wex',ifelse(quas<=1,'Wex_Exort','other'))))
 table(inv_ab_lvl9$inv_class)
 filter(inv_ab_lvl9,inv_class=='other')
 
@@ -193,6 +206,8 @@ inv_win_class = match_info_comb %>% select(match_id,radiant_win,team,inv_class) 
 
 ```{r}
 inv_win_class
-ggplot(aes(x=inv_class,y=freq),data=inv_win_class) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') + geom_bar(stat = "identity")
+ggplot(aes(x=inv_class,y=freq),data=inv_win_class) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') + 
+    geom_bar(stat = "identity") +
+    labs(title = "Plot 2. Winning rate for different Inoker builds") + xlab("Build") + ylab("Winning rate")
 ```
 
