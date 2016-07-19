@@ -61,7 +61,7 @@ steam_key=readRDS(file="E:/dota_data/steam_key.rds")
 
 
 ####Load data from SQLite database.
-```{r sql,cache=TRUE}
+```{r sql}
 db = dbConnect(SQLite(), "D:/DataSci_tools/Git_Repo/bak/dota_6.86f.sqlite3")
 
 match = dbReadTable(db,'match')    #match info
@@ -105,7 +105,7 @@ dim(inv_match)
 
 ### Q1. Which heroes as teammates led to highest winning rate? 
 
-```{r,cache=TRUE}
+```{r}
 #summarize heros info for each game, spread rows to columns
 game_info = inv_player %>% select(match_id,player_slot,hero_id) %>% mutate(team = ifelse(player_slot<5,'radiant','dire')) %>%
     group_by(match_id,team) %>%
@@ -179,7 +179,7 @@ for(i in 20:11){
 
 ### Q2. Which build led to higher winning rate for invoker?
 
-```{r,cache=TRUE}
+```{r}
 inv_slot = inv_player %>% filter(hero_id==inv_id) %>% select(match_id,player_slot)
 inv_ability_only = inner_join(inv_ability,inv_slot,by=names(inv_slot))
 
