@@ -72,7 +72,7 @@ dbDisconnect(db)
 ```
 
 
-####Quick look of the datasets
+####Quick look at the datasets
 ```{r data info}
 head(match)
 head(player,10)
