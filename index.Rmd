@@ -1,6 +1,9 @@
 ---
 title: "Analysis on Dota2 hero Invoker"
-output: html_document
+output: 
+  html_document: 
+    fig_height: 6
+    fig_width: 6
 date: July 18, 2016
 ---
 
@@ -46,7 +49,7 @@ suppressWarnings(library(tidyr))
 suppressWarnings(library(RCurl))
 suppressWarnings(library(jsonlite))
 suppressWarnings(library(RSQLite))
-suppressWarnings(library(ggplot2))
+suppressWarnings(library(highcharter))
 suppressWarnings(library(png))
 suppressWarnings(library(grid))
 suppressWarnings(library(gridExtra))
@@ -152,14 +155,23 @@ inv_enemy_win = inv_enemy_win[order(inv_enemy_win$win_freq),]
 
 
 
-```{r,fig.height=6,fig.width=6}
+```{r}
 p1_data = rbind(inv_ally_win[1:10,],inv_enemy_win[10:1,]) %>% mutate(id = as.integer(gsub('.*_','',number))) %>% inner_join(hero_names,by='id')
 p1_data = p1_data %>% mutate(name_f = ifelse(group=='ally',paste0(name,'_a'),paste0(name,'_e')))    #add suffix
 p1_data$name_f <- factor(p1_data$name_f, levels = p1_data$name_f[order(p1_data$win_freq,decreasing = T)])
-ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') +
-    geom_bar(stat = "identity") +
-    labs(title = "Plot 1. Max/min winning rate with allies/enemies") + xlab("Heros") + ylab("Winning rate") +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
+
+hchart(p1_data, "bar", x = name_f, y = win_freq,color=group) %>% 
+    hc_xAxis(title=list(text="Heros")) %>%
+    hc_yAxis(title=list(text="Winning rate")) %>%
+    hc_title(text = "Plot 1. Max/min winning rate with allies/enemies") %>%
+    hc_add_theme(hc_theme_google()) %>%
+    hc_tooltip(valueDecimals=4) %>%
+    hc_chart(width=600) %>%
+    hc_legend(enabled=F)
+# ggplot(aes(x=name_f,y=win_freq,fill=group),data=p1_data) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') +
+#     geom_bar(stat = "identity") +
+#     labs(title = "Plot 1. Max/min winning rate with allies/enemies") + xlab("Heros") + ylab("Winning rate") +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
 ```
 
 Invoker had the highest winning rate with these ally heroes (high to low)
@@ -210,10 +222,18 @@ inv_win_class = match_info_comb %>% select(match_id,radiant_win,team,inv_class) 
 ```
 
 
-```{r,fig.height=6,fig.width=6}
+```{r}
 inv_win_class
-ggplot(aes(x=inv_class,y=freq),data=inv_win_class) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') + 
-    geom_bar(stat = "identity") +
-    labs(title = "Plot 2. Winning rate for different Inoker builds") + xlab("Build") + ylab("Winning rate")
+
+hchart(inv_win_class, "bar", x = inv_class, y = freq) %>% 
+    hc_xAxis(title=list(text="Build")) %>%
+    hc_yAxis(title=list(text="Winning rate")) %>%
+    hc_title(text = "Plot 2. Winning rate for different Inoker builds") %>%
+    hc_add_theme(hc_theme_google()) %>%
+    hc_chart(width=600) %>%
+    hc_tooltip(valueDecimals=4)
+# ggplot(aes(x=inv_class,y=freq),data=inv_win_class) + geom_hline(yintercept=0.5,col='blue',linetype='dashed') + 
+#     geom_bar(stat = "identity") +
+#     labs(title = "Plot 2. Winning rate for different Inoker builds") + xlab("Build") + ylab("Winning rate")
 ```
 
